@@ -11,6 +11,7 @@ add_project_arguments('-Wno-unused-variable', language: 'c')
 
 wayland_scanner = find_program('wayland-scanner')
 wayland_client_dep = dependency('wayland-client')
+omp_dep = dependency('openmp', required: false)
 
 subdir('protocols')
 
@@ -24,7 +25,7 @@ executable('frzscr',
     'src/config.c',
     'src/xmalloc.c',
     protocol_sources,
-    dependencies: [wayland_client_dep],
+    dependencies: [wayland_client_dep, omp_dep],
     install: true
 )
 

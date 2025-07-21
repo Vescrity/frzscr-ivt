@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <sys/mman.h>
 #include <wayland-client.h>
+#include <omp.h>
 
 #include "wlr-layer-shell-unstable-v1.h"
 #include "viewporter.h"
@@ -142,7 +143,7 @@ struct overlay *create_overlay_from_screenshot(struct screenshot *screenshot) {
     if (config.invert) {
         uint8_t *pixels = overlay->buffer.data;
         int pixel_count = buf_w * buf_h;
-
+#pragma omp parallel for
         for (int i = 0; i < pixel_count; i++) {
             int pos = i * bytes_per_pixel;
             uint8_t r = pixels[pos];
