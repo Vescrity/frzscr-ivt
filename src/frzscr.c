@@ -26,7 +26,7 @@ void print_help_and_exit(FILE *stream, int exit_status) {
         "frzscr - freeze screen\n"
         "\n"
         "usage:\n"
-        "    frzscr [-Cvh] [-o OUTPUT] [-t TIMEOUT] [-s SIGNUM] [-c CMD [ARG]...]\n"
+        "    frzscr [-Chvi] [-o OUTPUT] [-t TIMEOUT] [-s SIGNUM] [-c CMD [ARG]...]\n"
         "\n"
         "command line options:\n"
         "    -o OUTPUT       only freeze this output (eg eDP-1)\n"
@@ -35,6 +35,7 @@ void print_help_and_exit(FILE *stream, int exit_status) {
         "    -c CMD [ARG]... fork CMD and wait for it to exit (terminates option list)\n"
         "    -C              include cursor in overlay\n"
         "    -v              enable debug output\n"
+        "    -i              invert brightness\n"
         "    -h              print this help message and exit\n"
     ;
 
@@ -45,7 +46,7 @@ void print_help_and_exit(FILE *stream, int exit_status) {
 void parse_command_line(int *argc, char ***argv) {
     int opt;
 
-    while ((opt = getopt(*argc, *argv, "o:t:s:Chv")) != -1) {
+    while ((opt = getopt(*argc, *argv, "o:t:s:Chvi")) != -1) {
         switch (opt) {
         case 'o':
             DEBUG("output name supplied on command line: %s", optarg);
@@ -77,6 +78,9 @@ void parse_command_line(int *argc, char ***argv) {
             break;
         case 'v':
             log_enable_debug = 1;
+            break;
+        case 'i':
+            config.invert = 1;
             break;
         case '?':
         default:

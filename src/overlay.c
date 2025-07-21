@@ -9,6 +9,7 @@
 #include "viewporter.h"
 
 #include "common.h"
+#include "config.h"
 #include "overlay.h"
 #include "wayland.h"
 #include "shm.h"
@@ -20,6 +21,8 @@
     | ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM \
     | ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT   \
     | ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT  )
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 static void layer_surface_configure(void *data, struct zwlr_layer_surface_v1 *layer_surface,
                                     uint32_t serial, uint32_t width, uint32_t height) {
@@ -135,6 +138,35 @@ struct overlay *create_overlay_from_screenshot(struct screenshot *screenshot) {
                  screenshot->buffer.width, screenshot->buffer.height,
                  bytes_per_pixel,
                  screenshot->output->transform);
+
+    if (config.invert) {
+        uint8_t *pixels = overlay->buffer.data;
+        int pixel_count = buf_w * buf_h;
+
+        for (int i = 0; i < pixel_count; i++) {
+            int pos = i * bytes_per_pixel;
+            uint8_t r = pixels[pos];
+            uint8_t g = pixels[pos + 1];
+            uint8_t b = pixels[pos + 2];
+
+            uint8_t max_val = MAX(MAX(r, g), b);
+            uint8_t min_val = MIN(MIN(r, g), b);
+            uint8_t delta = max_val - min_val;
+
+            uint8_t new_max = 255 - min_val;
+            uint8_t new_min = 255 - max_val;
+
+            if (delta == 0) {
+                pixels[pos] = pixels[pos+1] = pixels[pos+2] = new_max;
+            } else {
+                float scale = (float)(new_max - new_min) / delta;
+                pixels[pos]   = (uint8_t)(new_max - (max_val - r) * scale);
+                pixels[pos+1] = (uint8_t)(new_max - (max_val - g) * scale);
+                pixels[pos+2] = (uint8_t)(new_max - (max_val - b) * scale);
+            }
+        }
+    }
+    
 
     wl_surface_attach(overlay->wl_surface, overlay->buffer.wl_buffer, 0, 0);
     wl_surface_commit(overlay->wl_surface);

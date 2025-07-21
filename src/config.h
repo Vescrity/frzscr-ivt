@@ -9,6 +9,7 @@ struct config {
     unsigned int timeout;
     int child_kill_signal;
     bool cursor;
+    bool invert;
 };
 
 extern struct config config;
